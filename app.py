@@ -111,5 +111,5 @@ def gpio_toggle():
 
 
 if __name__ == '__main__':
-    # Runs on localhost:5000 by default for local development
-    app.run(host='127.0.0.1', port=5000, debug=True)
+    # Runs on localhost:80 by default for local development
+    app.run(host='127.0.0.1', port=80, debug=True)
