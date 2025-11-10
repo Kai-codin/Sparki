@@ -3,7 +3,8 @@ from app import app
 
 def test_index():
     client = app.test_client()
-    rv = client.get('/')
+    # JSON API preserved at /api (root now serves HTML)
+    rv = client.get('/api')
     assert rv.status_code == 200
     data = rv.get_json()
     assert data['message'] == "Hello from Sparki Flask app"

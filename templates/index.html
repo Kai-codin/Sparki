@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sparki - Welcome</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 720px; margin: 2rem auto; padding: 1rem; }
+    .switch { display:flex; align-items:center; gap:1rem; }
+    .status { margin-top: 1rem; }
+    button { padding: .5rem 1rem; font-size: 1rem }
+  </style>
+</head>
+<body>
+  <h1>Welcome to Sparki</h1>
+  <p>Control the LED connected to GPIO pin <strong>{{ pin }}</strong>.</p>
+
+  <div class="switch">
+    <label for="ledToggle">LED</label>
+    <input type="checkbox" id="ledToggle" />
+    <button id="btnToggle">Toggle</button>
+  </div>
+  <div class="status" id="status">Loading...</div>
+
+  <script>
+    const pin = {{ pin }};
+    const statusEl = document.getElementById('status');
+    const chk = document.getElementById('ledToggle');
+    const btn = document.getElementById('btnToggle');
+
+    async function fetchState(){
+      const r = await fetch('/gpio/state');
+      if(!r.ok){ statusEl.textContent = 'Failed to read state'; return; }
+      const j = await r.json();
+      chk.checked = j.state;
+      statusEl.textContent = `Pin ${j.pin} is ${j.state ? 'ON' : 'OFF'}`;
+    }
+
+    async function setState(state){
+      const r = await fetch('/gpio/toggle', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ state })
+      });
+      if(!r.ok){ statusEl.textContent = 'Failed to set state'; return; }
+      const j = await r.json();
+      chk.checked = j.state;
+      statusEl.textContent = `Pin ${j.pin} is ${j.state ? 'ON' : 'OFF'}`;
+    }
+
+    // initial read
+    fetchState();
+
+    // clicking checkbox sets explicit state
+    chk.addEventListener('change', () => setState(chk.checked));
+
+    // button toggles (server will toggle if no state provided)
+    btn.addEventListener('click', async () => {
+      const r = await fetch('/gpio/toggle', { method: 'POST' });
+      if(!r.ok){ statusEl.textContent = 'Failed to toggle'; return; }
+      const j = await r.json();
+      chk.checked = j.state;
+      statusEl.textContent = `Pin ${j.pin} is ${j.state ? 'ON' : 'OFF'}`;
+    });
+  </script>
+</body>
+</html>
